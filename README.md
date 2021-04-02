@@ -2,9 +2,9 @@
 
 Send instantaneous messages using nothing but google's firebase.
 
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/MainApp1.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp1.png)
 
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/MainApp2.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp2.png)
 
 
 
@@ -14,7 +14,7 @@ Send instantaneous messages using nothing but google's firebase.
 ### How does it work?
 Usually many messaging apps use client server interaction in order to exchange the information, but here many number of clients are linked with a unique firebase io URL or simply the database.
 
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/Structure.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Structure.png)
 
 Firechat uses simple replication process in order to get the messages.
 
@@ -32,24 +32,24 @@ Firechat uses simple replication process in order to get the messages.
 - Make sure you have a google account inorder to use googles firebase service
 - To create a firebase real time database go to https://firebase.google.com/ 
 - Go to the console
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/Firebase1.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase1.png)
 
 - Add a new project 
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/Firebase2.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase2.png)
 
 - At the left choose real time database feature and create database
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/Firebase3.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase3.png)
 
 
 -  **IMPORTANT** !!!  under security rules choose "Start in Test Mode"
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/tree/main/FireChat/images/Firebase4.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase4.png)
 
 
 - Install the required libraries by using: 
-				**for python2**
-				pip install -r requirements.txt
-				**for python3** 
-				pip3 install -r requirements.txt
+	**for python2**
+	pip install -r requirements.txt
+	**for python3** 
+	pip3 install -r requirements.txt
 - And then run python MainApplication .py 
 
 ### Caution
