@@ -2,7 +2,7 @@
 
 Send instantaneous messages using nothing but google's firebase.
 
-![alt text](https://github.com/Santhoshlm10/FireChat-Python/blob/master/images/MainApp1.png?raw=true)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp1.png)
 
 ![alt text](https://github.com/Santhoshlm10/FireChat-Python/blob/master/images/MainApp2.png?raw=true)
 
