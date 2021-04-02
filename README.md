@@ -56,3 +56,7 @@ Firechat uses simple replication process in order to get the messages.
 - Make sure there is always a child class called "FireChat" in firebase's real time database
 - The application might feel a bit laggy due to high refresh rate of incoming messages
 
+### Getting the build
+- To get the program into executable form depending on your operating system you can use pyinstaller 
+- Install pyinstaller using "pip3 install pyinstaller"
+- To get the build use "pyinstaller MainApplication.py"
