@@ -114,7 +114,7 @@ class Ui_MainWindow(object):
         MainWindow.close()
 
     def open_github(self):
-        webbrowser.open("https://www.github.com/")
+        webbrowser.open("https://github.com/Santhoshlm10/FireChat-Python/edit/main/FireChat")
 
     def leave_chat(self):
         self.lineEdit.setEnabled(True)
