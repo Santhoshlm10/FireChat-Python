@@ -190,7 +190,7 @@ class Ui_MainWindow(object):
                 result_length = len(result)
             except Exception as e:
                 data = {'name': 'FireChat Bot',
-                        'message': 'Hey, Weclome to firechat',
+                        'message': 'Hey, Welcome to firechat',
                         'time': datetime.datetime.now()
                         }
                 result1 = firebase.post('/FireChat/', data)
