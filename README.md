@@ -1,6 +1,6 @@
 # FireChat 🔥
 
-Send instantaneous messages using nothing but google's firebase.
+Send instantaneous messages using google's firebase.
 
 ![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp1.png)
 
@@ -57,6 +57,8 @@ Firechat uses simple replication process in order to get the messages.
 - The application might feel a bit laggy due to high refresh rate of incoming messages
 
 ### Getting the build
+- If you like to get the build without any command simply download the auto-py-to-exe python library else you can follow the steps given below
 - To get the program into executable form depending on your operating system you can use pyinstaller 
 - Install pyinstaller using "pip3 install pyinstaller"
 - To get the build use "pyinstaller MainApplication.py"
+
