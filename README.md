@@ -54,11 +54,11 @@ Firechat uses simple replication process in order to get the messages.
 
 ### Important!
 - Make sure there is always a child class called "FireChat" in firebase's real time database
-- The application might feel a bit laggy due to high refresh rate of incoming messages
 
 ### Getting the build
 - If you like to get the build without any command simply download the auto-py-to-exe python library else you can follow the steps given below
 - To get the program into executable form depending on your operating system you can use pyinstaller 
 - Install pyinstaller using "pip3 install pyinstaller"
 - To get the build use "pyinstaller MainApplication.py"
+- Even as better option use auto-py-to-exe (https://pypi.org/project/auto-py-to-exe/)
 
