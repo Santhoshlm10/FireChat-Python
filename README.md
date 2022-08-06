@@ -1,10 +1,10 @@
 # FireChat 🔥
 
-Send instantaneous messages using google's firebase.
+Send instantaneous messages using google's firebase!.
 
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp1.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/MainApp1.png)
 
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/MainApp2.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/MainApp2.png)
 
 
 
@@ -14,7 +14,7 @@ Send instantaneous messages using google's firebase.
 ### How does it work?
 Usually many messaging apps use client server interaction in order to exchange the information, but here many number of clients are linked with a unique firebase io URL or simply the database.
 
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Structure.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Structure.png)
 
 Firechat uses simple replication process in order to get the messages.
 
@@ -32,17 +32,17 @@ Firechat uses simple replication process in order to get the messages.
 - Make sure you have a google account inorder to use googles firebase service
 - To create a firebase real time database go to https://firebase.google.com/ 
 - Go to the console
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase1.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Firebase1.png)
 
 - Add a new project 
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase2.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Firebase2.png)
 
 - At the left choose real time database feature and create database
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase3.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Firebase3.png)
 
 
 -  **IMPORTANT** !!!  under security rules choose "Start in Test Mode"
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/FireChat/images/Firebase4.png)
+![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Firebase4.png)
 
 
 - Install the required libraries by using: 
@@ -52,7 +52,7 @@ Firechat uses simple replication process in order to get the messages.
 	pip3 install -r requirements.txt
 - And then run python MainApplication .py 
 
-### Caution
+### Important!
 - Make sure there is always a child class called "FireChat" in firebase's real time database
 - The application might feel a bit laggy due to high refresh rate of incoming messages
 
