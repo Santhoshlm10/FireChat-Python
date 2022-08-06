@@ -3,8 +3,9 @@ from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QLi
 from PyQt5.QtCore import QTimer, QDateTime
 import datetime
 import webbrowser
+from threading import *
+import getpass
 import time
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -68,7 +69,7 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
+        self.updateUsername()
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         self.unique_id = []
@@ -157,10 +158,11 @@ class Ui_MainWindow(object):
             self.pushButton_4.setEnabled(True)
             self.pushButton_2.setEnabled(True)
             self.label_1.setStyleSheet('color: #ffae42')
+            self.messageUpdateThread()
 
-            self.timer.setInterval(500)
-            self.timer.timeout.connect(self.getPeriodic)
-            self.timer.start()
+            # self.timer.setInterval(500)
+            # self.timer.timeout.connect(self.getPeriodic)
+            # self.timer.start()
 
         except Exception as e:
             err = str(e)
@@ -180,46 +182,42 @@ class Ui_MainWindow(object):
             self.label_1.setStyleSheet('color: #000000')
             return
 
+    def updateUsername(self):
+        sys_name = getpass.getuser()
+        self.lineEdit_2.setText(sys_name)
+
+    def messageUpdateThread(self):
+        self.message_thread = Thread(target=self.getPeriodic)
+        self.message_thread.start()
+
     def getPeriodic(self):
-        try:
-            from firebase import firebase
-            firebase_link = self.lineEdit.text()
-            firebase = firebase.FirebaseApplication(firebase_link, None)
+        while True:
             try:
-                result = firebase.get('/FireChat/', '')
-                result_length = len(result)
-            except Exception as e:
-                data = {'name': 'FireChat Bot',
-                        'message': 'Hey, Welcome to firechat',
-                        'time': datetime.datetime.now()
-                        }
-                result1 = firebase.post('/FireChat/', data)
+                from firebase import firebase
+                firebase_link = self.lineEdit.text()
+                firebase = firebase.FirebaseApplication(firebase_link, None)
+                try:
+                    result = firebase.get('/FireChat/', '')
+                    result_length = len(result)
+                except Exception as e:
+                    data = {'name': 'FireChat Bot',
+                            'message': 'Hey, Welcome to firechat',
+                            'time': datetime.datetime.now()
+                            }
+                    result1 = firebase.post('/FireChat/', data)
+                    return
+                id_list = list(result)
+                for i in range(0, result_length):
+                    if id_list[i] not in self.unique_id:
+                        time_stamp = str(result[id_list[i]]['time']).replace("T", " ")
+                        final_time = time_stamp[:19]
+                        final_data = final_time + " - " + result[id_list[i]]['name'] + " > " + result[id_list[i]]['message']
+                        self.listWidget.append(final_data)
+                        self.unique_id.append(id_list[i])
+            except Exception as err:
+                print("Unable to get firebase message exception: ",err)
                 return
-            id_list = list(result)
-            for i in range(0, result_length):
-                if id_list[i] not in self.unique_id:
-                    time_stamp = str(result[id_list[i]]['time']).replace("T", " ")
-                    final_time = time_stamp[:19]
-                    final_data = final_time + " - " + result[id_list[i]]['name'] + " > " + result[id_list[i]]['message']
-                    self.listWidget.append(final_data)
-                    self.unique_id.append(id_list[i])
-        except Exception as err:
-            self.timer.stop()
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Critical)
-            msgBox.setText("Sorry something went wrong while connecting"+"\n"+"Please make sure firebase.io URL is valid and active")
-            msgBox.setWindowTitle("Error while connecting")
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            msgBox.exec()
-            self.lineEdit.setEnabled(True)
-            self.lineEdit_2.setEnabled(True)
-            self.pushButton.setEnabled(True)
-            self.lineEdit_3.setEnabled(False)
-            self.pushButton_4.setEnabled(False)
-            self.listWidget.clear()
-            self.pushButton_2.setEnabled(False)
-            self.label_1.setStyleSheet('color: #000000')
-            return
+            time.sleep(0.5)
 
 
 if __name__ == "__main__":
