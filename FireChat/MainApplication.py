@@ -1,3 +1,4 @@
+from signal import signal
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QListWidgetItem, QMessageBox
 from PyQt5.QtCore import QTimer, QDateTime
@@ -6,8 +7,11 @@ import webbrowser
 from threading import *
 import getpass
 import time
+import psutil
+import os
+from PyQt5.QtWidgets import QMainWindow
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QMainWindow):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(665, 572)
@@ -87,7 +91,7 @@ class Ui_MainWindow(object):
         self.pushButton_3.setText(_translate("MainWindow", "Exit"))
         self.lineEdit_3.setPlaceholderText(_translate("MainWindow", "Type your message and hit enter"))
         self.pushButton_4.setText(_translate("MainWindow", "Send Message"))
-        self.pushButton_5.setText(_translate("MainWindow", 'Github♥'))
+        self.pushButton_5.setText(_translate("MainWindow", 'Contribute'))
 
     def send_message(self):
         from firebase import firebase
@@ -113,6 +117,9 @@ class Ui_MainWindow(object):
 
     def close_app(self):
         MainWindow.close()
+        p = psutil.Process(os.getpid())
+        p.terminate()  
+
 
     def open_github(self):
         webbrowser.open("https://github.com/Santhoshlm10/FireChat-Python/edit/main/FireChat")
@@ -219,6 +226,18 @@ class Ui_MainWindow(object):
                 return
             time.sleep(0.5)
 
+    def closeEvent(self, event):
+            close = QtWidgets.QMessageBox.question(self,
+                                         "QUIT",
+                                         "Are you sure want to exit?",
+                                         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            if close == QtWidgets.QMessageBox.Yes:
+                event.accept()
+                # MainWindow.close()
+                # p = psutil.Process(os.getpid())
+                # p.terminate()  
+            else:
+                event.ignore()
 
 if __name__ == "__main__":
     import sys
