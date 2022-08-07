@@ -8,4 +8,4 @@ PyQt5==5.14.1
 PyQtWebEngine==5.14.0
 webbrowser
 git+https://github.com/ozgur/python-firebase
-#pip insatll git+https://github.com/ozgur/python-firebase
+
