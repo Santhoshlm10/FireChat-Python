@@ -2,7 +2,7 @@ import sqlite3
 import platform
 
 if platform.system() == "Linux":
-    sqlpath = "/home/santhosh/Desktop/Santhosh/Github/FireChat-Python/database/firechat"
+    sqlpath = "./firechat"
 else:
     sqlpath = "./../database/firechat"
 
