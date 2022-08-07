@@ -1,102 +1,323 @@
-from signal import signal
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QVBoxLayout, QListWidgetItem, QMessageBox
-from PyQt5.QtCore import QTimer, QDateTime
+from PyQt5.QtCore import QTimer, QDateTime, QThreadPool
 import datetime
 import webbrowser
-from threading import *
 import getpass
 import time
 import psutil
 import os
 from PyQt5.QtWidgets import QMainWindow
+from views.createroom import CreateRoomWindow
+from utils.managedatabase import getRoomNameList, getFirebaseUrl
+from threading import *
 
-class Ui_MainWindow(QMainWindow):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(665, 572)
-        MainWindow.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(10, 10, 161, 51))
+
+class FireChatApplication(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # constants
+        self.FIREBASE_URL = ""
+        self.THREAD_STATUS = 0
+
+        self.setFixedSize(849, 842)
+        self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint | QtCore.Qt.WindowMinimizeButtonHint)
+        self.verticalLayoutWidget = QtWidgets.QWidget(self)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 10, 821, 810))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.appverticallayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.appverticallayout.setContentsMargins(0, 0, 0, 0)
+        self.appverticallayout.setObjectName("appverticallayout")
+        self.headerhorizontallayout = QtWidgets.QHBoxLayout()
+        self.headerhorizontallayout.setObjectName("headerhorizontallayout")
+        self.appnamelabel = QtWidgets.QLabel(self.verticalLayoutWidget)
         font = QtGui.QFont()
-        font.setPointSize(26)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.label_1 = QtWidgets.QLabel(self.centralwidget)
-        self.label_1.setGeometry(QtCore.QRect(150, 10, 61, 41))
-        self.label_1.setFont(font)
-        self.label_1.setObjectName("label_1")
-        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit.setGeometry(QtCore.QRect(10, 60, 251, 27))
-        self.lineEdit.setObjectName("lineEdit")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_2.setGeometry(QtCore.QRect(270, 60, 131, 27))
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(410, 60, 91, 27))
-        self.pushButton.clicked.connect(self.startChat)
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(510, 60, 71, 27))
-        self.pushButton_2.clicked.connect(self.leave_chat)
-        self.pushButton_2.setEnabled(False)
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setGeometry(QtCore.QRect(588, 60, 71, 27))
-        self.pushButton_3.clicked.connect(self.close_app)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.listWidget = QtWidgets.QTextEdit(self.centralwidget)
-        self.listWidget.setReadOnly(True)
-        self.listWidget.setGeometry(QtCore.QRect(10, 101, 641, 411))
-        self.listWidget.setObjectName("textEdit")
+        font.setPointSize(22)
+        self.appnamelabel.setFont(font)
+        self.appnamelabel.setObjectName("appnamelabel")
+        self.headerhorizontallayout.addWidget(self.appnamelabel)
+        self.createroombutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.createroombutton.sizePolicy().hasHeightForWidth())
+        self.createroombutton.setSizePolicy(sizePolicy)
+        self.createroombutton.setObjectName("createroombutton")
+        self.createroombutton.clicked.connect(self.onCreateRoomClick)
+        self.headerhorizontallayout.addWidget(self.createroombutton)
 
-        # self.listWidget.setAutoScroll(True)
-        # list_widget.setAutoScroll(True)
-        self.timer = QTimer()
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_3.setGeometry(QtCore.QRect(10, 520, 511, 27))
-        self.lineEdit_3.setObjectName("lineEdit_3")
-        self.lineEdit_3.returnPressed.connect(self.send_message)
-        self.lineEdit_3.setEnabled(False)
-        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setGeometry(QtCore.QRect(528, 520, 121, 27))
-        self.pushButton_4.setObjectName("pushButton_4")
-        self.pushButton_4.clicked.connect(self.send_message)
-        self.pushButton_4.setEnabled(False)
-        self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_5.setGeometry(QtCore.QRect(590, 10, 71, 32))
-        self.pushButton_5.clicked.connect(self.open_github)
-        self.pushButton_5.setObjectName("pushButton_5")
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-        self.updateUsername()
+        self.refreshbutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.refreshbutton.sizePolicy().hasHeightForWidth())
+        self.refreshbutton.clicked.connect(self.onRefreshClick)
+        self.refreshbutton.setSizePolicy(sizePolicy)
+        self.refreshbutton.setText("Refresh")
+        self.refreshbutton.setObjectName("refreshbutton")
+        self.headerhorizontallayout.addWidget(self.refreshbutton)
+
+        self.contributebutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.contributebutton.sizePolicy().hasHeightForWidth())
+        self.contributebutton.clicked.connect(self.open_github)
+        self.contributebutton.setSizePolicy(sizePolicy)
+        self.contributebutton.setObjectName("contributebutton")
+        self.headerhorizontallayout.addWidget(self.contributebutton)
+        self.appverticallayout.addLayout(self.headerhorizontallayout)
+        self.secondhorizontallayout = QtWidgets.QHBoxLayout()
+        self.secondhorizontallayout.setObjectName("secondhorizontallayout")
+        self.chooseyourroontext = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.chooseyourroontext.setObjectName("chooseyourroontext")
+        self.secondhorizontallayout.addWidget(self.chooseyourroontext)
+        self.chooseroomdropdown = QtWidgets.QComboBox(self.verticalLayoutWidget)
+        self.chooseroomdropdown.activated.connect(self.onRoomNameChange)
+        self.chooseroomdropdown.setObjectName("chooseroomdropdown")
+        self.secondhorizontallayout.addWidget(self.chooseroomdropdown)
+        self.usernameinput = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.usernameinput.sizePolicy().hasHeightForWidth())
+        self.usernameinput.setSizePolicy(sizePolicy)
+        self.usernameinput.setMinimumSize(QtCore.QSize(150, 0))
+        self.usernameinput.setObjectName("usernameinput")
+        self.secondhorizontallayout.addWidget(self.usernameinput)
+        self.joinbutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.joinbutton.setObjectName("joinbutton")
+        self.joinbutton.clicked.connect(self.onJoinButtonClick)
+        self.secondhorizontallayout.addWidget(self.joinbutton)
+        self.leavebutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.leavebutton.setEnabled(False)
+        self.leavebutton.setObjectName("leavebutton")
+        self.leavebutton.clicked.connect(self.leave_chat)
+        self.secondhorizontallayout.addWidget(self.leavebutton)
+        self.exitbutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.exitbutton.setObjectName("exitbutton")
+        self.exitbutton.clicked.connect(self.close_app)
+        self.secondhorizontallayout.addWidget(self.exitbutton)
+        self.appverticallayout.addLayout(self.secondhorizontallayout)
+        self.listWidget = QtWidgets.QTextEdit(self.verticalLayoutWidget)
+        self.listWidget.setReadOnly(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        self.listWidget.verticalScrollBar().minimum()
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.listWidget.sizePolicy().hasHeightForWidth())
+        self.listWidget.setSizePolicy(sizePolicy)
+        self.listWidget.setMinimumSize(QtCore.QSize(0, 650))
+        self.listWidget.setObjectName("listWidget")
+        self.appverticallayout.addWidget(self.listWidget)
+        self.footerhorizontallayout = QtWidgets.QHBoxLayout()
+        self.footerhorizontallayout.setObjectName("footerhorizontallayout")
+        self.entermessageinput = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        self.entermessageinput.returnPressed.connect(self.send_message)
+        self.entermessageinput.setObjectName("entermessageinput")
+        self.footerhorizontallayout.addWidget(self.entermessageinput)
+        self.sendmessagebutton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.sendmessagebutton.setObjectName("sendmessagebutton")
+        self.sendmessagebutton.clicked.connect(self.send_message)
+        self.footerhorizontallayout.addWidget(self.sendmessagebutton)
+        self.appverticallayout.addLayout(self.footerhorizontallayout)
         self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.show()
+        self.updateUsername()
+        self.updateroomnamelist()
+        self.threadpool = QThreadPool()
         self.unique_id = []
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(
-            _translate("MainWindow", "FireChat - a private chat application using google firebase"))
-        self.label.setText(_translate("MainWindow", "FireChat"))
-        self.label_1.setText(_translate("MainWindow", "🔥"))
-        self.lineEdit.setPlaceholderText(_translate("MainWindow", "firebase.io URL"))
-        self.lineEdit_2.setPlaceholderText(_translate("MainWindow", "Your name"))
-        self.pushButton.setText(_translate("MainWindow", "Join"))
-        self.pushButton_2.setText(_translate("MainWindow", "Leave"))
-        self.pushButton_3.setText(_translate("MainWindow", "Exit"))
-        self.lineEdit_3.setPlaceholderText(_translate("MainWindow", "Type your message and hit enter"))
-        self.pushButton_4.setText(_translate("MainWindow", "Send Message"))
-        self.pushButton_5.setText(_translate("MainWindow", 'Contribute'))
+        self.setWindowTitle(_translate("MainWindow", "Welcome to Firechat - send private messages using google firebase"))
+        self.appnamelabel.setText(_translate("MainWindow", "FireChat🔥"))
+        self.createroombutton.setText(_translate("MainWindow", "Manage Rooms"))
+        self.contributebutton.setText(_translate("MainWindow", "Contribute"))
+        self.chooseyourroontext.setText(_translate("MainWindow", "Choose your room:"))
+        self.usernameinput.setPlaceholderText(_translate("MainWindow", "Username"))
+        self.joinbutton.setText(_translate("MainWindow", "Join"))
+        self.leavebutton.setText(_translate("MainWindow", "Leave"))
+        self.exitbutton.setText(_translate("MainWindow", "Exit"))
+        self.entermessageinput.setPlaceholderText(_translate("MainWindow", "Enter your message and hit enter"))
+        self.sendmessagebutton.setText(_translate("MainWindow", "Send Messsage"))
+
+
+    def onCreateRoomClick(self):
+        self.creatRoom = CreateRoomWindow()
+
+    def leave_chat(self):
+        self.THREAD_STATUS = 0
+        self.chooseroomdropdown.setEnabled(True)
+        self.usernameinput.setEnabled(True)
+        self.joinbutton.setEnabled(True)
+        self.refreshbutton.setEnabled(True)
+        self.leavebutton.setEnabled(False)
+        self.createroombutton.setEnabled(False)
+        self.listWidget.clear()
+        self.unique_id = []
+
+    def open_github(self):
+        webbrowser.open("https://github.com/Santhoshlm10/FireChat-Python")
+
+    def updateUsername(self):
+        sys_name = getpass.getuser()
+        self.usernameinput.setText(sys_name)
+
+    def updateroomnamelist(self):
+        a = getRoomNameList()[2]
+        if len(a) != 0:
+            for i in a:
+                self.chooseroomdropdown.addItem(i[0])
+        b = getFirebaseUrl(self.chooseroomdropdown.currentText())
+        self.FIREBASE_URL = b[2][0][0]
+
+
+
+    def onRefreshClick(self):
+        self.chooseroomdropdown.clear()
+        self.updateroomnamelist()
+
+    def close_app(self):
+        self.close()
+
+
+    def onJoinButtonClick(self):
+        try:
+            username = self.usernameinput.text()
+            if not (username):
+                msgBox = QMessageBox()
+                msgBox.setIcon(QMessageBox.Critical)
+                msgBox.setText("Username cannot be Empty")
+                msgBox.setWindowTitle("Empty field found")
+                msgBox.setStandardButtons(QMessageBox.Ok)
+                msgBox.exec()
+                return
+            self.chooseroomdropdown.setEnabled(False)
+            self.usernameinput.setEnabled(False)
+            self.joinbutton.setEnabled(False)
+            self.refreshbutton.setEnabled(False)
+            self.leavebutton.setEnabled(True)
+            self.exitbutton.setEnabled(True)
+            self.createroombutton.setEnabled(False)
+            self.THREAD_STATUS = 1
+            self.messageUpdateThread()
+
+        except Exception as e:
+            err = str(e)
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Critical)
+            msgBox.setText(err + "\n" + "Try,\n1.Checking firebase.io URL is active\n2.Entered inputs are valid")
+            msgBox.setWindowTitle("Error while connecting")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            msgBox.exec()
+            return
+
+    def execute_this_fn(self, progress_callback):
+        while True:
+            time.sleep(0.5)
+            progress_callback.emit(1)
+
+    def onRoomNameChange(self):
+        b = getFirebaseUrl(self.chooseroomdropdown.currentText())
+        self.FIREBASE_URL = b[2][0][0]
+
+
+    # def getPeriodic(self):
+    #     if self.THREAD_STATUS == 1:
+    #         try:
+    #             from firebase import firebase
+    #             firebase_link = self.FIREBASE_URL
+    #             firebase = firebase.FirebaseApplication(firebase_link, None)
+    #             try:
+    #                 result = firebase.get('/FireChat/', '')
+    #                 result_length = len(result)
+    #             except Exception as e:
+    #                 data = {'name': 'FireChat Bot',
+    #                                 'message': 'Hey, Welcome to firechat',
+    #                                 'time': datetime.datetime.now().strftime("%D %I:%M:%S %p")
+    #                                 }
+    #                 result1 = firebase.post('/FireChat/', data)
+    #                 return
+    #             id_list = list(result)
+    #             for i in range(0, result_length):
+    #                 if id_list[i] not in self.unique_id:
+    #                     time_stamp = str(result[id_list[i]]['time']).replace("T", " ")
+    #                     final_time = time_stamp[:20]
+    #                     final_data = final_time + " - " + result[id_list[i]]['name'] + " > " + result[id_list[i]]['message']
+    #                     self.listWidget.append(final_data)
+    #                     self.unique_id.append(id_list[i])
+    #         except Exception as err:
+    #             msgBox = QMessageBox()
+    #             msgBox.setIcon(QMessageBox.Critical)
+    #             msgBox.setText("Unable to connect firebase")
+    #             msgBox.setWindowTitle("Error while connecting")
+    #             msgBox.setStandardButtons(QMessageBox.Ok)
+    #             msgBox.exec()
+    #             self.chooseroomdropdown.setEnabled(True)
+    #             self.usernameinput.setEnabled(True)
+    #             self.joinbutton.setEnabled(True)
+    #             self.refreshbutton.setEnabled(True)
+    #             self.leavebutton.setEnabled(False)
+    #             self.exitbutton.setEnabled(False)
+    #             self.createroombutton.setEnabled(False)
+    #             self.THREAD_STATUS = 0
+    #             return
+
+
+
+
+
+    def getPeriodic(self):
+        while True:
+            if self.THREAD_STATUS == 1:
+                try:
+                    from firebase import firebase
+                    firebase_link = self.FIREBASE_URL
+                    firebase = firebase.FirebaseApplication(firebase_link, None)
+                    try:
+                        result = firebase.get('/FireChat/', '')
+                        result_length = len(result)
+                    except Exception as e:
+                        data = {'name': 'FireChat Bot',
+                                    'message': 'Hey, Welcome to firechat',
+                                    'time': datetime.datetime.now().strftime("%D %I:%M:%S %p")
+                                    }
+                        result1 = firebase.post('/FireChat/', data)
+                        return
+                    id_list = list(result)
+                    for i in range(0, result_length):
+                        if id_list[i] not in self.unique_id:
+                            time_stamp = str(result[id_list[i]]['time']).replace("T", " ")
+                            final_time = time_stamp[:20]
+                            final_data = final_time + " - " + result[id_list[i]]['name'] + " > " + result[id_list[i]]['message']
+                            self.listWidget.append(final_data)
+                            self.unique_id.append(id_list[i])
+                except Exception as err:
+                    msgBox = QMessageBox()
+                    msgBox.setIcon(QMessageBox.Critical)
+                    msgBox.setText("Unable to connect firebase")
+                    msgBox.setWindowTitle("Error while connecting")
+                    msgBox.setStandardButtons(QMessageBox.Ok)
+                    msgBox.exec()
+                    self.chooseroomdropdown.setEnabled(True)
+                    self.usernameinput.setEnabled(True)
+                    self.joinbutton.setEnabled(True)
+                    self.refreshbutton.setEnabled(True)
+                    self.leavebutton.setEnabled(False)
+                    self.exitbutton.setEnabled(False)
+                    self.createroombutton.setEnabled(False)
+                    self.THREAD_STATUS = 0
+                    return
+                time.sleep(1)
+            else:
+                break
 
     def send_message(self):
         from firebase import firebase
-        firebase_link = self.lineEdit.text()
-        message = self.lineEdit_3.text()
+        firebase_link = self.FIREBASE_URL
+        message = self.entermessageinput.text()
         if not message:
             msgBox = QMessageBox()
             msgBox.setIcon(QMessageBox.Critical)
@@ -107,124 +328,20 @@ class Ui_MainWindow(QMainWindow):
             return
 
         firebase = firebase.FirebaseApplication(firebase_link, None)
-        data = {'name': self.lineEdit_2.text(),
+        data = {'name': self.usernameinput.text(),
                 'message': message,
-                'time': datetime.datetime.now()
+                'time': datetime.datetime.now().strftime("%D %I:%M:%S %p")
                 }
         result = firebase.post('/FireChat/', data)
-        self.lineEdit_3.clear()
+        self.entermessageinput.clear()
         return
 
-    def close_app(self):
-        MainWindow.close()
-        p = psutil.Process(os.getpid())
-        p.terminate()  
-
-
-    def open_github(self):
-        webbrowser.open("https://github.com/Santhoshlm10/FireChat-Python/edit/main/FireChat")
-
-    def leave_chat(self):
-        self.lineEdit.setEnabled(True)
-        self.lineEdit_2.setEnabled(True)
-        self.pushButton.setEnabled(True)
-        self.lineEdit_3.setEnabled(False)
-        self.pushButton_4.setEnabled(False)
-        self.listWidget.clear()
-        self.pushButton_2.setEnabled(False)
-        self.lineEdit_3.clear()
-        self.label_1.setStyleSheet('color: #000000')
-        self.timer.stop()
-        self.unique_id = []
-
-    def startChat(self):
-        try:
-            firebase_link = self.lineEdit.text()
-            if not (firebase_link):
-                msgBox = QMessageBox()
-                msgBox.setIcon(QMessageBox.Critical)
-                msgBox.setText("Firebase URL cannot be Empty")
-                msgBox.setWindowTitle("Empty field found")
-                msgBox.setStandardButtons(QMessageBox.Ok)
-                msgBox.exec()
-                return
-            # get the name of the application user
-            username = self.lineEdit_2.text()
-            if not (username):
-                msgBox = QMessageBox()
-                msgBox.setIcon(QMessageBox.Critical)
-                msgBox.setText("Username cannot be Empty")
-                msgBox.setWindowTitle("Empty field found")
-                msgBox.setStandardButtons(QMessageBox.Ok)
-                msgBox.exec()
-                return
-            self.lineEdit.setEnabled(False)
-            self.lineEdit_2.setEnabled(False)
-            self.pushButton.setEnabled(False)
-            self.lineEdit_3.setEnabled(True)
-            self.pushButton_4.setEnabled(True)
-            self.pushButton_2.setEnabled(True)
-            self.label_1.setStyleSheet('color: #ffae42')
-            self.messageUpdateThread()
-
-            # self.timer.setInterval(500)
-            # self.timer.timeout.connect(self.getPeriodic)
-            # self.timer.start()
-
-        except Exception as e:
-            err = str(e)
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Critical)
-            msgBox.setText(err + "\n" + "Try,\n1.Checking firebase.io URL is active\n2.Entered inputs are valid")
-            msgBox.setWindowTitle("Error while connecting")
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            msgBox.exec()
-            self.lineEdit.setEnabled(True)
-            self.lineEdit_2.setEnabled(True)
-            self.pushButton.setEnabled(True)
-            self.lineEdit_3.setEnabled(False)
-            self.pushButton_4.setEnabled(False)
-            self.listWidget.clear()
-            self.pushButton_2.setEnabled(False)
-            self.label_1.setStyleSheet('color: #000000')
-            return
-
-    def updateUsername(self):
-        sys_name = getpass.getuser()
-        self.lineEdit_2.setText(sys_name)
-
     def messageUpdateThread(self):
-        self.message_thread = Thread(target=self.getPeriodic)
-        self.message_thread.start()
-
-    def getPeriodic(self):
-        while True:
-            try:
-                from firebase import firebase
-                firebase_link = self.lineEdit.text()
-                firebase = firebase.FirebaseApplication(firebase_link, None)
-                try:
-                    result = firebase.get('/FireChat/', '')
-                    result_length = len(result)
-                except Exception as e:
-                    data = {'name': 'FireChat Bot',
-                            'message': 'Hey, Welcome to firechat',
-                            'time': datetime.datetime.now()
-                            }
-                    result1 = firebase.post('/FireChat/', data)
-                    return
-                id_list = list(result)
-                for i in range(0, result_length):
-                    if id_list[i] not in self.unique_id:
-                        time_stamp = str(result[id_list[i]]['time']).replace("T", " ")
-                        final_time = time_stamp[:19]
-                        final_data = final_time + " - " + result[id_list[i]]['name'] + " > " + result[id_list[i]]['message']
-                        self.listWidget.append(final_data)
-                        self.unique_id.append(id_list[i])
-            except Exception as err:
-                print("Unable to get firebase message exception: ",err)
-                return
-            time.sleep(0.5)
+        # self.worker = MessageWorker(self.execute_this_fn)
+        # self.worker.signals.progress.connect(self.getPeriodic)
+        # self.threadpool.start(self.worker)
+        self.messageThread = Thread(target=self.getPeriodic)
+        self.messageThread.start()
 
     def closeEvent(self, event):
             close = QtWidgets.QMessageBox.question(self,
@@ -233,17 +350,17 @@ class Ui_MainWindow(QMainWindow):
                                          QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
             if close == QtWidgets.QMessageBox.Yes:
                 event.accept()
-                # MainWindow.close()
-                # p = psutil.Process(os.getpid())
-                # p.terminate()  
+                self.close()
+                p = psutil.Process(os.getpid())
+                p.terminate()
             else:
                 event.ignore()
+
+
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    ui = FireChatApplication()
     sys.exit(app.exec_())
