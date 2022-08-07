@@ -7,19 +7,6 @@ Send instantaneous messages using google's firebase!.
 ![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/MainApp2.png)
 
 
-
-
-
-
-### How does it work?
-Usually many messaging apps use client server interaction in order to exchange the information, but here many number of clients are linked with a unique firebase io URL or simply the database.
-
-![github-small](https://github.com/Santhoshlm10/FireChat-Python/blob/main/images/Structure.png)
-
-Firechat uses simple replication process in order to get the messages.
-
-
-
 ### Tech Stack
 - PyQT5 (A drag and drop like GUI designer)
    Library - https://pypi.org/project/PyQt5/
